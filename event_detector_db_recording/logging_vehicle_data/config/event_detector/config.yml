@@ -1,0 +1,59 @@
+event_detector_db_recording_plugin:
+  ros__parameters:
+
+    use_sim_time: false
+    startup_state: 3
+
+    buffer:
+      default_time: 2.0
+      default_queue_size: 20
+      use_msg_stamp: false
+
+    analysis:
+      default_period: 1.0
+
+    clients:
+      - Ego
+
+    client_params:
+      Ego:
+        base_frame: vehicles/Ego/base_link
+        tf_prefix: vehicles/Ego
+        data_types:
+          - geometry_msgs__PoseStamped
+          - geometry_msgs__TwistStamped
+          - geometry_msgs__AccelStamped
+          - sensor_msgs__PointCloud2
+        data_type_params:
+          geometry_msgs__PoseStamped:
+            topics:
+              - /vehicles/Ego/pose
+          geometry_msgs__TwistStamped:
+            topics:
+              - /vehicles/Ego/twist
+          geometry_msgs__AccelStamped:
+            topics:
+              - /vehicles/Ego/acceleration
+          sensor_msgs__PointCloud2:
+            topics:
+              - /vehicles/Ego/drivers/front_lidar/pointcloud
+
+    rules:
+      - event_detector_db_recording_plugin::RecordAllRule
+
+    rule_params:
+      event_detector_db_recording_plugin::RecordAllRule:
+        enabled: true
+        parameters:
+          database:
+            name: db
+            host: mongodb
+            user: writer
+            pass: password
+            port: 27017
+            large_data_root: /event_detector/db/large_data
+            dry_run: false
+          geometry_msgs__PoseStamped: true
+          geometry_msgs__TwistStamped: true
+          geometry_msgs__AccelStamped: true
+          sensor_msgs__PointCloud2: true

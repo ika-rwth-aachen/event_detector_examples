@@ -1,0 +1,51 @@
+services:
+
+  mongodb:
+    image: mongo:8.0.3
+    environment:
+      MONGO_INITDB_DATABASE: db
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - mongodb:/data/db
+      - ./config/mongodb/initdb:/docker-entrypoint-initdb.d:ro
+
+  mongo-express:
+    image: mongo-express:1.0.2
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+      ME_CONFIG_BASICAUTH_USERNAME: example
+      ME_CONFIG_BASICAUTH_PASSWORD: example
+
+  rosbag-play:
+    image: rwthika/event_detector_db_recording:latest-with-mcap
+    build:
+      dockerfile: ./dockerfiles/rosbag-play.Dockerfile
+    # delay launch to ensure that mongodb and event-detector are ready
+    command: /bin/sh -c "sleep 5 && ros2 bag play /rosbag"
+    volumes:
+      - ./data/rosbag:/rosbag
+
+  event-detector:
+    image: rwthika/event_detector_db_recording:latest
+    depends_on: [mongodb, rosbag-play]
+    # delay launch to ensure that mongodb is ready
+    command: /bin/sh -c "sleep 3 && ros2 launch event_detector_db_recording_plugin event_detector_db_recording_plugin.launch.py"
+    volumes:
+      - ./config/event_detector/config.yml:/docker-ros/ws/install/event_detector_db_recording_plugin/share/event_detector_db_recording_plugin/config/params.yml
+      - db-large-data:/event_detector/db/large_data
+    healthcheck: # shut down once rosbag-play has finished
+      test: ping -c 1 rosbag-play || kill 1
+      interval: 1s
+      retries: 1
+      start_period: 5s
+
+volumes:
+
+  mongodb:
+  db-large-data:
