@@ -59,7 +59,7 @@ services:
 
   # Wait for a rosbag to be recorded, then start playing it
   ros2-bag-play-saved:
-    image: gitlab.ika.rwth-aachen.de:5050/fb-fi/its-modules/analysis/event_detector_bag_recording:latest
+    image: gitlab.ika.rwth-aachen.de:5050/fb-fi/its-modules/analysis/event_detector_bag_recording:latest_prepare-for-github_ci
     environment:
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     depends_on:
@@ -68,9 +68,9 @@ services:
     networks:
       - saved-rosbag
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
       - ./rosbags-saved:/rosbags-saved
-    command: sh -c "while [ ! -f /rosbags-saved/triggered-bag_recording-2/metadata.yaml ]; do sleep 1; done && ros2 bag play -l -r 0.5 /rosbags-saved/triggered-bag_recording-2"
+      - ./find_and_play_rosbags.sh:/find_and_play_rosbags.sh
+    command: bash /find_and_play_rosbags.sh
 
   # Visualize the playback of the recorded rosbag
   ros2-monitoring-saved:
@@ -95,4 +95,5 @@ services:
 # Make sure that ros2-bag-play-saved and ros2-monitoring-saved can only communicate with each other
 networks:
   saved-rosbag:
+    name: saved-rosbag
     driver: bridge

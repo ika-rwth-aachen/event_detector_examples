@@ -4,10 +4,10 @@ while true; do
     for folder in $folders; do
       if [ -f "$folder/metadata.yaml" ]; then
         echo "Found metadata.yaml in $folder"
-        echo "Running ros2 bag play -r 1.0 $folder" --clock
-        ros2 bag play -r 1.0 "$folder" --clock
+        echo "Running ros2 bag play -r 0.5 $folder --clock"
+        ros2 bag play -r 0.5 "$folder" --clock
       fi
     done
   fi
-  sleep 1 
+  sleep 1
 done
