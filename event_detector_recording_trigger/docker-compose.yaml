@@ -35,13 +35,10 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    depends_on:
-      event-detector-recording-trigger:
-        condition: service_started
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./rviz_config_ros2-original.rviz:/rviz_config_ros2-original.rviz
-    command: ros2 run rviz2 rviz2 -d /rviz_config_ros2-original.rviz --ros-args --remap _log_disable_rosout:=true > /dev/null 2>&1
+      - ./ros2.original.rviz:/ros2.original.rviz
+    command: ros2 run rviz2 rviz2 -d /ros2.original.rviz --ros-args --remap _log_disable_rosout:=true > /dev/null 2>&1
 
   # Play the original rosbag from which we want to record a subset
   ros2-bag-play-original:
@@ -49,6 +46,8 @@ services:
     environment:
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     depends_on:
+      event-detector-recording-trigger:
+        condition: service_started
       ros2-monitoring-original:
         condition: service_started
     command: ros2 bag play -l -r 0.3 /home/dockeruser/ws/bagfiles/event_detector_recording_trigger/example-rosbag --clock
@@ -86,9 +85,9 @@ services:
       - saved-rosbag
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./rviz_config_ros2-saved.rviz:/rviz_config_ros2-saved.rviz
+      - ./ros2.recorded.rviz:/ros2.recorded.rviz
     command: >
-      sh -c "rviz2 -d /rviz_config_ros2-saved.rviz --ros-args --remap _log_disable_rosout:=true > /dev/null 2>&1"
+      sh -c "rviz2 -d /ros2.recorded.rviz --ros-args --remap _log_disable_rosout:=true > /dev/null 2>&1"
 
 # Make sure that ros2-bag-play-saved and ros2-monitoring-saved can only communicate with each other
 networks:

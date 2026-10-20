@@ -22,9 +22,6 @@ services:
     image: gitlab.ika.rwth-aachen.de:5050/fb-fi/its-modules/analysis/event_detector_bag_recording:latest_prepare-for-github_ci
     environment:
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
-    depends_on:
-      ros2-monitoring-original:
-        condition: service_started
     volumes:
       - ./event_detector_bag_recording_plugin.params.yml:/docker-ros/ws/install/event_detector_bag_recording_plugin/share/event_detector_bag_recording_plugin/config/params.yml
       - ./rosbags-saved:/rosbags-saved
@@ -55,6 +52,8 @@ services:
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     depends_on:
       event-detector-bag-recording:
+        condition: service_started
+      ros2-monitoring-original:
         condition: service_started
     command: ros2 bag play -l -r 0.5 /home/dockeruser/ws/bagfiles/event_detector_bag_recording/example-rosbag --clock
 
