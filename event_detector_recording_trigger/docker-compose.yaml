@@ -1,0 +1,97 @@
+services:
+
+  # Start the event detector with recording trigger plugin
+  event-detector-recording-trigger:
+    image: gitlab.ika.rwth-aachen.de:5050/fb-fi/its-modules/analysis/event_detector_recording_trigger:latest_prepare-for-github_ci
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    depends_on:
+      event-detector-bag-recording:
+        condition: service_started
+    volumes:
+      - ./event_detector_recording_trigger_plugin.params.yml:/docker-ros/ws/install/event_detector_recording_trigger_plugin/share/event_detector_recording_trigger_plugin/config/params.yml
+    command: ros2 launch event_detector_recording_trigger_plugin event_detector_recording_trigger_plugin.launch.py
+
+  # Start the event detector with bag recording plugin
+  event-detector-bag-recording:
+    image: gitlab.ika.rwth-aachen.de:5050/fb-fi/its-modules/analysis/event_detector_bag_recording:latest_prepare-for-github_ci
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    volumes:
+      - ./event_detector_bag_recording_plugin.params.yml:/docker-ros/ws/install/event_detector_bag_recording_plugin/share/event_detector_bag_recording_plugin/config/params.yml
+      - ./rosbags-saved:/rosbags-saved
+    command: ros2 launch event_detector_bag_recording_plugin event_detector_bag_recording_plugin.launch.py
+
+  # Visualize the original rosbag
+  ros2-monitoring-original:
+    image: ghcr.io/openads-project/monitoring:latest
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - DISPLAY
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    depends_on:
+      event-detector-recording-trigger:
+        condition: service_started
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./rviz_config_ros2-original.rviz:/rviz_config_ros2-original.rviz
+    command: ros2 run rviz2 rviz2 -d /rviz_config_ros2-original.rviz --ros-args --remap _log_disable_rosout:=true > /dev/null 2>&1
+
+  # Play the original rosbag from which we want to record a subset
+  ros2-bag-play-original:
+    image: rwthika/event_detector_examples:2026-09
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    depends_on:
+      ros2-monitoring-original:
+        condition: service_started
+    command: ros2 bag play -l -r 0.3 /home/dockeruser/ws/bagfiles/event_detector_recording_trigger/example-rosbag --clock
+
+  # Wait for a rosbag to be recorded, then start playing it
+  ros2-bag-play-saved:
+    image: gitlab.ika.rwth-aachen.de:5050/fb-fi/its-modules/analysis/event_detector_bag_recording:latest
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    depends_on:
+      ros2-monitoring-saved:
+        condition: service_started
+    networks:
+      - saved-rosbag
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./rosbags-saved:/rosbags-saved
+      - ./find_and_play_rosbags.sh:/find_and_play_rosbags.sh
+    command: bash /find_and_play_rosbags.sh
+
+  # Visualize the playback of the recorded rosbag
+  ros2-monitoring-saved:
+    image: ghcr.io/openads-project/monitoring:latest
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - DISPLAY
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - saved-rosbag
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./rviz_config_ros2-saved.rviz:/rviz_config_ros2-saved.rviz
+    command: >
+      sh -c "rviz2 -d /rviz_config_ros2-saved.rviz --ros-args --remap _log_disable_rosout:=true > /dev/null 2>&1"
+
+# Make sure that ros2-bag-play-saved and ros2-monitoring-saved can only communicate with each other
+networks:
+  saved-rosbag:
+    name: saved-rosbag
+    driver: bridge
