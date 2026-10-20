@@ -1,9 +1,10 @@
-# Example | *Event Detector Bag Recording*
+## Recording on request | `event_detector_bag_recording`
 
-This example tests the event detector with the bag recording plugin. It plays a ROS 2 bagfile containing a point cloud and an object list. The bag recording plugin then records only the object list to a new ROS 2 bagfile. Both the original and the recorded ROS 2 bagfile are visualized in RViz.
+This example tests the event detector with the bag recording plugin. It plays a ROS 2 bagfile containing a point cloud and an object list. A one-shot `StartRecording` message is published to the plugin, which then records the requested topics from the requested time window to a new ROS 2 bagfile. Both the original and the recorded ROS 2 bagfile are visualized in RViz.
+
+### Quick Start
 
 ```bash
-# example/
 docker compose up
 ```
 
