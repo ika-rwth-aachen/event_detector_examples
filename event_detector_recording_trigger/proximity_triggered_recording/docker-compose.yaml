@@ -2,7 +2,7 @@ services:
 
   # Start the event detector with recording trigger plugin
   event-detector-recording-trigger:
-    image: gitlab.ika.rwth-aachen.de:5050/fb-fi/its-modules/analysis/event_detector_recording_trigger:latest_prepare-for-github_ci
+    image:  rwthika/event_detector_recording_trigger:latest
     environment:
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     depends_on:
@@ -14,7 +14,7 @@ services:
 
   # Start the event detector with bag recording plugin
   event-detector-bag-recording:
-    image: gitlab.ika.rwth-aachen.de:5050/fb-fi/its-modules/analysis/event_detector_bag_recording:latest_prepare-for-github_ci
+    image: rwthika/event_detector_bag_recording:latest
     environment:
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     volumes:
@@ -54,7 +54,7 @@ services:
 
   # Wait for a rosbag to be recorded, then start playing it
   ros2-bag-play-saved:
-    image: gitlab.ika.rwth-aachen.de:5050/fb-fi/its-modules/analysis/event_detector_bag_recording:latest_prepare-for-github_ci
+    image: rwthika/event_detector_bag_recording:latest
     environment:
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
     depends_on:
