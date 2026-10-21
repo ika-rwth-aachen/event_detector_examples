@@ -15,4 +15,4 @@ Two RViz windows open. The window for the original ROS 2 bagfile (left) shows th
   <img src="assets/recorded.png" width="48%">
 </p>
 
-Once a new ROS 2 bagfile has been recorded, the second RViz window plays it back. The recorded ROS 2 bagfiles are written to [`rosbags-saved`](rosbags-saved/). The scenario runs in a loop, so a new bagfile is recorded on every iteration — stop the example with `Ctrl+C` once you have seen a recording.
+Once a new ROS 2 bagfile has been recorded, its topics are visualized in the second RViz window. The recorded ROS 2 bagfiles are written to [`rosbags-saved`](rosbags-saved/). The scenario runs in a loop, so a new bagfile is recorded on every iteration — stop the example with `Ctrl+C` once you have seen a recording.
