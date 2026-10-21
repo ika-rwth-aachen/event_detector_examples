@@ -23,17 +23,19 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: example
 
   rosbag-play:
-    image: rwthika/event_detector_db_recording:latest-with-mcap
-    build:
-      dockerfile: ./dockerfiles/rosbag-play.Dockerfile
-    # delay launch to ensure that mongodb and event-detector are ready
-    command: /bin/sh -c "sleep 5 && ros2 bag play /rosbag"
-    volumes:
-      - ./data/rosbag:/rosbag
+    image: rwthika/event_detector_examples:2026-09
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    depends_on:
+      event-detector-db-recording:
+        condition: service_started
+    command: ros2 bag play -l -r 0.5 /home/dockeruser/ws/bagfiles/event_detector_db_recording/rosbag --clock
 
-  event-detector:
+  event-detector-db-recording:
     image: rwthika/event_detector_db_recording:latest
-    depends_on: [mongodb, rosbag-play]
+    depends_on:
+      mongodb:
+        condition: service_started
     # delay launch to ensure that mongodb is ready
     command: /bin/sh -c "sleep 3 && ros2 launch event_detector_db_recording_plugin event_detector_db_recording_plugin.launch.py"
     volumes:
@@ -46,6 +48,5 @@ services:
       start_period: 5s
 
 volumes:
-
   mongodb:
   db-large-data:
