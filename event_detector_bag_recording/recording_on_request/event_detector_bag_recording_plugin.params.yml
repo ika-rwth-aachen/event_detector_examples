@@ -1,0 +1,118 @@
+event_detector_bag_recording_plugin:
+  ros__parameters:
+
+    use_sim_time: true    # whether to use simulation time, e.g., when playing bagfiles
+    startup_state: 3      # lifecycle state: unknown (0), unconfigured (1), inactive (2), active (3), finalized (4)
+
+    # buffer parameters
+    buffer:
+      default_time: 1.0      # default buffer length (in seconds)
+      default_queue_size: 200  # default subscriber queue size
+      use_msg_stamp: true     # whether to use message stamp for sorting, if present
+
+    # analysis parameters
+    analysis:
+      default_period: 1.0     # default period (in seconds) between subsequent analysis rule evaluations
+
+   # client names
+    clients:
+      - Ego                                 # Name of the client for which we want to record data
+      - Objects
+
+    # client parameters by client name
+    client_params:
+      Ego:                                  # Name of the client for which we want to record data
+        base_frame: vehicles/Ego/base_link  # client base frame used for storing static transforms
+        tf_prefix: vehicles/Ego             # client-specific prefix of frames found in dynamic transforms
+
+        # data types to subscribe
+        data_types:
+          - sensor_msgs__PointCloud2                     # type of data we want to record
+          - sensor_msgs__Image                           # type of data we want to record
+          - sensor_msgs__CameraInfo
+          - vision_msgs__BoundingBox3DArray
+          - geometry_msgs__PoseStamped
+          - geometry_msgs__TwistStamped
+          - geometry_msgs__AccelStamped
+          # tf and tf_static not listed here, because they are handled differently by the event_detector
+
+        # data type-specific parameters
+        data_type_params:
+          sensor_msgs__PointCloud2:                       # type of data we want to record
+            topics:
+              - /vehicles/Ego/drivers/front_lidar/pointcloud  # name of the topic on which this type of data is received and then buffered
+          sensor_msgs__Image:                            # type of data we want to record
+            topics:
+              - /vehicles/Ego/drivers/front_camera/image  # name of the topic on which this type of data is received and then buffered
+          sensor_msgs__CameraInfo:
+            topics:
+              - /vehicles/Ego/drivers/front_camera/camera_info
+          vision_msgs__BoundingBox3DArray:
+            topics:
+              - /vehicles/Ego/bounding_box
+          geometry_msgs__PoseStamped:
+            topics:
+              - /vehicles/Ego/pose
+          geometry_msgs__TwistStamped:
+            topics:
+              - /vehicles/Ego/twist
+          geometry_msgs__AccelStamped:
+            topics:
+              - /vehicles/Ego/acceleration
+
+      Objects:
+        base_frame: /map
+        tf_prefix: /map
+        data_types:
+          - vision_msgs__BoundingBox3DArray
+        data_type_params:
+          vision_msgs__BoundingBox3DArray:
+            topics:
+              - /objects/object_02/bounding_box
+              - /objects/object_03/bounding_box
+              - /objects/object_04/bounding_box
+              - /objects/object_05/bounding_box
+              - /objects/object_06/bounding_box
+              - /objects/object_07/bounding_box
+              - /objects/object_08/bounding_box
+              - /objects/object_09/bounding_box
+              - /objects/object_10/bounding_box
+              - /objects/object_11/bounding_box
+              - /objects/object_12/bounding_box
+              - /objects/object_13/bounding_box
+              - /objects/object_14/bounding_box
+              - /objects/object_15/bounding_box
+              - /objects/object_16/bounding_box
+              - /objects/object_17/bounding_box
+              - /objects/object_18/bounding_box
+              - /objects/object_19/bounding_box
+              - /objects/object_20/bounding_box
+              - /objects/object_21/bounding_box
+              - /objects/object_22/bounding_box
+              - /objects/object_23/bounding_box
+              - /objects/object_24/bounding_box
+              - /objects/object_25/bounding_box
+              - /objects/object_26/bounding_box
+              - /objects/object_27/bounding_box
+              - /objects/object_28/bounding_box
+              - /objects/object_29/bounding_box
+              - /objects/object_30/bounding_box
+
+
+    rules:
+      - event_detector_bag_recording_plugin::RecordBagRule
+
+    rule_params:                            # List the BecordBagRule here
+      event_detector_bag_recording_plugin::RecordBagRule:
+        enabled: true                       # enable or disable the execution of the rule
+        parameters:                         # rule-specific parameters
+          rosbag_base_path: /rosbags-saved
+          start_recording_topic: /event_detector/start_recording
+          end_recording_topic: /event_detector/end_recording
+          storage_id: mcap
+          max_bagfile_size_in_bytes: 0
+          max_bagfile_duration_in_seconds: 0
+          max_cache_size_in_bytes: 100000000
+          # example trigger message: ros2 topic pub /event_detector/start_recording event_detector_bag_recording_msgs/msg/StartRecording "{recording_id: 'test_id', start_time: {sec: 0, nanosec: 0}, end_time: {sec: 1717608160, nanosec: 0}, topics: ['/vehicles/Ego/ego_data'], rule: 'test_rule_name', scenario_participants: ['Ego']}"
+
+

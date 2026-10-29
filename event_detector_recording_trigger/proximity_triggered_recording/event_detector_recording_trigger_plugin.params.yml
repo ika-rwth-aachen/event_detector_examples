@@ -1,0 +1,109 @@
+event_detector_recording_trigger_plugin:
+  ros__parameters:
+
+    use_sim_time: true
+    startup_state: 3      # lifecycle state: unknown (0), unconfigured (1), inactive (2), active (3), finalized (4)
+
+    # buffer parameters
+    buffer:
+      default_time: 1.0      # default buffer length (in seconds)
+      default_queue_size: 10  # default subscriber queue size
+      use_msg_stamp: true     # whether to use message stamp for sorting, if present
+
+    # client names
+    clients:
+      - Ego
+      - Challenger
+
+    # client parameters by client name
+    client_params:
+      Ego:
+        #base_frame: vehicles/Ego/base_link # client base frame used for storing static transforms
+        #tf_prefix: vehicles/Ego            # client-specific prefix of frames found in dynamic transforms
+        # data types to subscribe
+        data_types:
+          - geometry_msgs__PoseStamped
+        data_type_params:
+          geometry_msgs__PoseStamped:
+            topics:
+              - /vehicles/Ego/pose
+            buffer_times: [1.0]
+            queue_sizes: [20]
+
+      Challenger:
+        #base_frame: vehicles/Challenger/base_link
+        #tf_prefix: vehicles/Challenger
+        data_types:
+          - geometry_msgs__PoseStamped
+        data_type_params:
+          geometry_msgs__PoseStamped:
+            topics:
+              - /vehicles/Challenger/pose
+            buffer_times: [1.0]
+            queue_sizes: [20]
+
+    rules:
+      - event_detector_recording_trigger_plugin::BagRecordingProximityRule
+
+    rule_params:
+      event_detector_recording_trigger_plugin::BagRecordingProximityRule:
+        enabled: true
+        period: 0.1
+        parameters:
+          trigger_topics:
+            - /vehicles/Ego/pose
+            - /vehicles/Challenger/pose
+          record_topics:
+            - /tf
+            - /tf_static
+            - /vehicles/Challenger/drivers/front_lidar/pointcloud
+            - /vehicles/Challenger/drivers/front_camera/image
+            - /vehicles/Challenger/drivers/front_camera/camera_info
+            - /vehicles/Challenger/bounding_box
+            - /vehicles/Challenger/pose
+            - /vehicles/Challenger/twist
+            - /vehicles/Challenger/acceleration
+            - /vehicles/Ego/drivers/front_lidar/pointcloud
+            - /vehicles/Ego/drivers/front_camera/image
+            - /vehicles/Ego/drivers/front_camera/camera_info
+            - /vehicles/Ego/bounding_box
+            - /vehicles/Ego/pose
+            - /vehicles/Ego/twist
+            - /vehicles/Ego/acceleration
+            - /objects/object_02/bounding_box
+            - /objects/object_03/bounding_box
+            - /objects/object_04/bounding_box
+            - /objects/object_05/bounding_box
+            - /objects/object_06/bounding_box
+            - /objects/object_07/bounding_box
+            - /objects/object_08/bounding_box
+            - /objects/object_09/bounding_box
+            - /objects/object_10/bounding_box
+            - /objects/object_11/bounding_box
+            - /objects/object_12/bounding_box
+            - /objects/object_13/bounding_box
+            - /objects/object_14/bounding_box
+            - /objects/object_15/bounding_box
+            - /objects/object_16/bounding_box
+            - /objects/object_17/bounding_box
+            - /objects/object_18/bounding_box
+            - /objects/object_19/bounding_box
+            - /objects/object_20/bounding_box
+            - /objects/object_21/bounding_box
+            - /objects/object_22/bounding_box
+            - /objects/object_23/bounding_box
+            - /objects/object_24/bounding_box
+            - /objects/object_25/bounding_box
+            - /objects/object_26/bounding_box
+            - /objects/object_27/bounding_box
+            - /objects/object_28/bounding_box
+            - /objects/object_29/bounding_box
+            - /objects/object_30/bounding_box
+            # - /vehicles/Ego/object_list
+            # - /vehicles/Challenger/object_list
+          max_distance_to_start_recording: 30.0
+          min_distance_to_end_recording: 60.0
+          max_duration: 30.0
+          lead_time: 0.5
+          start_recording_topic: /event_detector/start_recording
+          end_recording_topic: /event_detector/end_recording
